@@ -1,7 +1,7 @@
 const ClientOAuth2 = require('client-oauth2');
 const request = require('request');
 const fs = require('fs');
-const FILE_PATH = 'fitbit-oauth-tokens.json';
+const FILE_PATH = '/data/fitbit-oauth-tokens.json';
 
 let refreshPromise;
 let tokens = {};
