@@ -53,8 +53,8 @@ module.exports = function (RED) {
                 return {
                     weight: msg.payload.weight,
                     fat: msg.payload.fat,
-                    date: moment().add( 2, 'hours' ).format( "YYYY-MM-DD" ),
-                    time: moment().add( 2, 'hours' ).format( "HH:mm:ss" ),
+                    date: moment().add( 0, 'hours' ).format( "YYYY-MM-DD" ),
+                    time: moment().add( 0, 'hours' ).format( "HH:mm:ss" ),
                 }
             },
             func: (data) => {
