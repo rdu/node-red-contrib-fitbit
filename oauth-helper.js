@@ -44,22 +44,42 @@ module.exports = function (RED) {
         });
     }
 
-    function _makeRequest(method, url, token) {
-        return new Promise((resolve, reject) => {
-            request(token.sign({
-                method: method,
-                url: url
-            }), (err, _response, body) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(body);
-                }
+    function _makeRequest(method, url, token, data = undefined) {
+        // console.log("request", method, url, data);
+        if (method === 'POST')
+        {
+            return new Promise((resolve, reject) => {
+                request(token.sign({
+                    method: method,
+                    url: url,
+                    form: data
+                }), (err, _response, body) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(body);
+                    }
+                });
             });
-        });
+        }
+        else
+        {
+            return new Promise((resolve, reject) => {
+                request(token.sign({
+                    method: method,
+                    url: url
+                }), (err, _response, body) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(body);
+                    }
+                });
+            });
+        }
     }
 
-    function makeRequest(method, url, credentials, credentialsID) {
+    function makeRequest(method, url, credentials, credentialsID, data = undefined) {
         if (!tokens[credentialsID]) return Promise.resolve();
 
         const oauth = getFitbitOauth(credentials);
@@ -85,10 +105,10 @@ module.exports = function (RED) {
             }
 
             requestPromise = refreshPromise.then(newToken => {
-                return _makeRequest(method, url, newToken);
+                return _makeRequest(method, url, newToken, data);
             })
         } else {
-            requestPromise = _makeRequest(method, url, token);
+            requestPromise = _makeRequest(method, url, token, data);
         }
 
         return requestPromise.catch(err => {

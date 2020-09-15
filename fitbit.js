@@ -45,6 +45,22 @@ module.exports = function (RED) {
     const oauth = require('./oauth-helper')(RED);
 
     const RESOURCE_TYPES = {
+        "log-weight": {
+            display: RED._("fitbit.resources.log-weight"),
+            method: 'POST',
+            inputs: [],
+            body: (msg)=> {
+                return {
+                    weight: msg.payload.weight,
+                    fat: msg.payload.fat,
+                    date: moment().add( 2, 'hours' ).format( "YYYY-MM-DD" ),
+                    time: moment().add( 2, 'hours' ).format( "HH:mm:ss" ),
+                }
+            },
+            func: (data) => {
+                return `https://api.fitbit.com/1/user/-/body/log/weight.json`;
+            }
+        },
         "body-fat-log": {
             display: RED._("fitbit.resources.body-fat-log"),
             inputs: ["startDate", "endDate", "period"],
@@ -212,16 +228,29 @@ module.exports = function (RED) {
             const credentialsNode = RED.nodes.getNode(config.fitbit);
             const credentials = RED.nodes.getNode(config.fitbit).credentials;
 
-            oauth.makeRequest("GET", url, credentials, credentialsNode.id).then(data => {
-                try {
-                    msg.payload = parseFitbitData(data);
-                } catch (err) {
-                    errorReport(err, msg);
-                    return;
-                }
-
-                node.send(msg);
-            })
+            if (resource.method === 'POST')
+            {
+                oauth.makeRequest("POST", url, credentials, credentialsNode.id, resource.body(msg)).then(data => {
+                    try {
+                        msg.payload = parseFitbitData(data);
+                    } catch (err) {
+                        errorReport(err, msg);
+                        return;
+                    }
+                    node.send(msg);
+                });
+            }
+            else {
+                oauth.makeRequest("GET", url, credentials, credentialsNode.id).then(data => {
+                    try {
+                        msg.payload = parseFitbitData(data);
+                    } catch (err) {
+                        errorReport(err, msg);
+                        return;
+                    }
+                    node.send(msg);
+                });
+            }
         });
     }
     RED.nodes.registerType("fitbit", fitbitInNode);
